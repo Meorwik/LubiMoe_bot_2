@@ -4,7 +4,6 @@ from calendar import monthrange
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import List, Dict, Optional, Union
-from reserved import is_reserved
 
 from aiogram import types
 from aiogram.types import User
@@ -14,6 +13,13 @@ from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+def is_reserved(date):
+    # print(date)
+    if '23' in str(date):
+        return True
+    return False
 
 
 class WrongCallbackException(Exception):
@@ -231,7 +237,6 @@ class InlineCalendar:
             if callback_data['data'] != '0':
                 return user_info.current_date.replace(day=int(callback_data['data']))
             return callback_data['data']
-
 
     def close(self):
         raise NotImplementedError
