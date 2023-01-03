@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from json import dumps
+from json import dumps, loads
 
 
 @dataclass
 class Request:
-    # date and time must be DATE TIME object
     chat_id: int = None
     username: str = None
     first_name: str = None
@@ -16,5 +15,5 @@ class Request:
     countOfGuests: int = None
     phoneNumber: int = None
 
-    def to_json(self):
-        return dumps(self, default=lambda o: o.__dict__, indent=4, ensure_ascii=False)
+    def to_dict(self):
+        return loads(dumps(self, default=lambda o: o.__dict__, indent=4, ensure_ascii=False))

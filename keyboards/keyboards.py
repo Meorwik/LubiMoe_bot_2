@@ -1,46 +1,77 @@
-
-
-from aiogram.utils.callback_data import CallbackData, CallbackDataFilter
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from utils.calendar_example import InlineCalendar
-from enum import Enum, auto
-from typing import List
-
-
-class Actions(Enum):
-    GO_BACK = auto()
-    ADDRESS = auto()
-
+from data.texts import texts
+import datetime
 
 # LISTS WITH TEXT DATA
-list_with_addresses: List[str] = ["Розыбакиева, 111", "Желтоксан, 118"]
-
-# CALLBACK FACTORY
-CALLBACK_DATA_PREFIX = 'callbacks'
-BASE_CALLBACK = CallbackData(CALLBACK_DATA_PREFIX, 'action', 'data')
-# CALLBACK_CHOOSE_ADDRESS = BASE_CALLBACK.new(action=Actions.ADDRESS.name, data='-')
-CALLBACK_GO_BACK = BASE_CALLBACK.new(action=Actions.GO_BACK.name, data='BACK')
+main_menu_button_callbacks = ["Book_", "KitchenAndBar_", "Reviews_", "ContactsAndAddresses_"]
+list_with_addresses = ["Розыбакиева, 111", "Желтоксан, 118"]
+list_with_time = texts.get("times")
+CALLBACK_GO_BACK = "BACK"
 
 
-# KEYBOARDS
+# SIMPLE KEYBOARDS
+def create_main_menu_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton("Забронировать 🔐", callback_data=main_menu_button_callbacks[0]),
+        InlineKeyboardButton("Меню 📕", callback_data=main_menu_button_callbacks[1]),
+        InlineKeyboardButton("Отзывы 📈", callback_data=main_menu_button_callbacks[2]),
+        InlineKeyboardButton("Контакты и адреса 👤", callback_data=main_menu_button_callbacks[3])
+    )
+    return keyboard
+
+
 def create_choose_address_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=1).add(
-        InlineKeyboardButton(text=f"{list_with_addresses[0]}", callback_data=list_with_addresses[0]),
-        InlineKeyboardButton(text=f"{list_with_addresses[1]}", callback_data=list_with_addresses[1]),
+        InlineKeyboardButton(text=list_with_addresses[0], callback_data=list_with_addresses[0]),
+        InlineKeyboardButton(text=list_with_addresses[1], callback_data=list_with_addresses[1]),
         InlineKeyboardButton(text='Назад', callback_data=CALLBACK_GO_BACK)
     )
     return keyboard
 
 
-def create_choose_date_keyboard():
+def create_temp_date_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=1).add(
-        InlineKeyboardButton(text=f"{list_with_addresses[0]}", callback_data="0"),
-        InlineKeyboardButton(text=f"{list_with_addresses[1]}", callback_data="list_with_addresses[1]"),
+        InlineKeyboardButton(text="Today", callback_data=str(datetime.date.today())),
+        InlineKeyboardButton(text="Today", callback_data=str(datetime.date.today())),
         InlineKeyboardButton(text='Назад', callback_data=CALLBACK_GO_BACK)
     )
     return keyboard
 
 
-def create_choose_time_keyboard():
-    pass
+# COMPLEX KEYBOARDS
+class TimeKeyboard:
+    def __init__(self):
+        self.keyboard = InlineKeyboardMarkup(row_width=1)
+        self.times_to_add = []
+        self.page: int = 1
 
+    def go_page_down(self):
+        self.page -= 1
+
+    def go_page_upper(self):
+        self.page += 1
+
+    def create_time_list_for_keyboard(self):
+        current_time = datetime.datetime.now().strftime("%H")
+        current_time = "20"
+        for time in list_with_time:
+            if current_time in time[2:4]:
+                self.times_to_add = list_with_time[list_with_time.index(time) + 1:]
+
+    def create_time_select_keyboard(self):
+        self.keyboard = InlineKeyboardMarkup(row_width=1)
+        if len(self.times_to_add) <= 2:
+            self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in self.times_to_add])
+            if self.page > 1:
+                self.keyboard.add(InlineKeyboardButton(text="<<<", callback_data="<<<"))
+        else:
+            self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in self.times_to_add[:2]])
+            self.keyboard.add(InlineKeyboardButton(text=">>>", callback_data=">>>"))
+
+            if self.page > 1:
+                self.keyboard.add(InlineKeyboardButton(text="<<<", callback_data="<<<"))
+
+            self.times_to_add = [time for time in self.times_to_add[2:]]
+
+        self.keyboard.add(InlineKeyboardButton("Назад", callback_data=CALLBACK_GO_BACK))
+        return self.keyboard
