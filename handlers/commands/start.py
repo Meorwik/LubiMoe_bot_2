@@ -1,4 +1,4 @@
-from aiogram.dispatcher.filters.builtin import CommandStart, CommandHelp
+from aiogram.dispatcher.filters.builtin import CommandStart
 from keyboards.keyboards import create_main_menu_keyboard
 from states.states import StateGroup
 from data.texts import texts
@@ -6,7 +6,7 @@ from aiogram import types
 from loader import dp
 
 
-@dp.message_handler(CommandHelp(), state="*")
+@dp.message_handler(CommandStart(), state="*")
 async def run_main_menu(message: types.Message):
     await StateGroup.in_main_menu.set()
     await message.answer(f"Привет, {message.chat.full_name}!\n{texts.get('greetings')}",

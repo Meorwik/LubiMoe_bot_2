@@ -1,9 +1,9 @@
-from aiogram.dispatcher.filters.builtin import CommandHelp, CommandStart
+from aiogram.dispatcher.filters.builtin import CommandHelp
 from aiogram import types
 from loader import dp
 
 
-@dp.message_handler(CommandStart(), state="*")
+@dp.message_handler(CommandHelp(), state="*")
 async def bot_help(message: types.Message):
     text = ("Команды: ",
             "/start - Запустить бота",
