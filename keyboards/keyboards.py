@@ -53,17 +53,20 @@ class TimeKeyboard:
         return True
 
     def __create_today_time_list_(self):
-        current_time = datetime.datetime.now().strftime("%H")
-        print(current_time)
+        current_time = str(datetime.datetime.now().strftime("%H"))
         for time in list_with_time:
             if current_time in time[2:4]:
                 self.times_to_add = list_with_time[list_with_time.index(time) + 1:]
-                self.possible_pages = len(self.times_to_add) // 2
                 self.const_times = self.times_to_add
+                return True
+            elif current_time == "00":
+                self.times_to_add = list_with_time[7:]
+                self.possible_pages = len(self.times_to_add) / 2
                 return True
         return False
 
     def __full_or_closed(self):
+        current_time = datetime.datetime.now().strftime("%H")
         if len(self.times_to_add) == 0 and current_time[0] == "0":
             return False
         else:
@@ -104,6 +107,7 @@ class TimeKeyboard:
             return self.__create_not_today_time_list_()
         else:
             if self.__create_today_time_list_():
+
                 return True
             else:
                 return self.__full_or_closed()
@@ -111,29 +115,26 @@ class TimeKeyboard:
     def create_time_select_keyboard(self, sep):
         self.keyboard = InlineKeyboardMarkup(row_width=1)
         temp_times_to_add = self.times_to_add
-        cut_list = []
         if sep == "up":
             if self.page > self.possible_pages:
                 self.page = 1
                 self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in temp_times_to_add[:2]])
-                cut_list = [temp_times_to_add[:2]]
-                print(cut_list, self.times_to_add)
                 temp_times_to_add = temp_times_to_add[2:]
             else:
-                cut_list = [temp_times_to_add[:2]]
                 self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in temp_times_to_add[:2]])
                 temp_times_to_add = temp_times_to_add[2:]
+                print(self.times_to_add)
 
     # TODO: FINISH "<<<" BUTTON
-        elif sep == "down":
-            if self.page < 1:
-                if cut_list:
-                    self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in cut_list])
-                    self.page = self.possible_pages
-            else:
-                self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in cut_list])
-                print(self.times_to_add + cut_list)
-                pass
+    #     elif sep == "down":
+    #         if self.page < 1:
+    #             if cut_list:
+    #                 self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in cut_list])
+    #                 self.page = self.possible_pages
+    #         else:
+    #             self.keyboard.add(*[InlineKeyboardButton(text=i, callback_data=i) for i in cut_list])
+    #             print(self.times_to_add + cut_list)
+    #             pass
 
         self.times_to_add = temp_times_to_add
         if len(self.times_to_add) == 0:

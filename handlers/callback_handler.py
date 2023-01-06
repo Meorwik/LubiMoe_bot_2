@@ -78,13 +78,13 @@ async def handle_time_callbacks(call: types.CallbackQuery, state: FSMContext):
         await call.message.delete()
 
         data_base_manager = DataBaseManager()
-        await data_base_manager.connect("data/DataBase/user_requests")
+        await data_base_manager.connect()
 
         async with state.proxy() as data:
             data["request"].time = call.data
             await data_base_manager.add_new_info(
-                table_name="users_requests",
-                info=[None] + [i for i in data["request"].to_dict().values()])
+                table_name="requests",
+                info=[i for i in data["request"].to_dict().values()])
 
         await data_base_manager.disconnect()
         del data_base_manager
