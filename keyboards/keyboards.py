@@ -58,6 +58,7 @@ class TimeKeyboard:
             if current_time in time[2:4]:
                 self.times_to_add = list_with_time[list_with_time.index(time) + 1:]
                 self.const_times = self.times_to_add
+                self.possible_pages = len(self.times_to_add) / 2
                 return True
             elif current_time == "00":
                 self.times_to_add = list_with_time[7:]
