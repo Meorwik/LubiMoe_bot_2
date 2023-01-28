@@ -1,5 +1,5 @@
 from aiogram.dispatcher.filters.builtin import CommandStart
-from keyboards.keyboards import create_main_menu_keyboard
+from keyboards.simple_keyboards.simple_keyboards import create_main_menu_keyboard
 from states.states import StateGroup
 from data.texts import texts
 from aiogram import types

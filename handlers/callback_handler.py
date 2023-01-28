@@ -1,19 +1,14 @@
-from keyboards.keyboards import \
-    (
-        create_choose_address_keyboard,
-        create_temp_date_keyboard,
-        create_temp_date_keyboard,
-        list_with_addresses,
-        TimeKeyboard
-    )
+from keyboards.simple_keyboards.simple_keyboards import create_choose_address_keyboard, list_with_addresses
+from keyboards.complex_keyboards.calendar_keyboard import DateKeyboard, calendar_callback
+from keyboards.complex_keyboards.time_select_keyboard import TimeKeyboard
 from handlers.commands.start import run_main_menu
 from utils.db_api.db_api import DataBaseManager
 from aiogram.dispatcher import FSMContext
 from utils.users_requests import Request
 from states.states import StateGroup
 from data.texts import texts
-from loader import dp, bot
 from aiogram import types
+from loader import dp
 
 
 @dp.callback_query_handler(state=StateGroup.in_main_menu)
@@ -38,38 +33,38 @@ async def handle_addresses_callbacks(call: types.CallbackQuery, state: FSMContex
     await call.message.delete()
     if call.data in list_with_addresses:
 
-        async with state.proxy() as data: data["request"].address = call.data
+        async with state.proxy() as data:
+            data["request"].address = call.data
 
         await call.answer(text=f"Вы выбрали: {call.data}")
-        await call.message.answer(text=texts.get("date"), reply_markup=create_temp_date_keyboard())
+
+        await call.message.answer(text=texts.get("date"), reply_markup=await DateKeyboard().start_calendar())
         await state.set_state(StateGroup.in_choosing_date)
 
     elif call.data == "BACK":
         await run_main_menu(call.message)
 
 
-@dp.callback_query_handler(state=StateGroup.in_choosing_date)
-async def handle_date_callbacks(call: types.CallbackQuery, state: FSMContext):
-    await call.message.delete()
-    if call.data != "BACK":
+@dp.callback_query_handler(calendar_callback.filter(), state=StateGroup.in_choosing_date)
+async def handle_date_callbacks(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    selected, date = await DateKeyboard().process_selection(call, callback_data)
 
+    if selected:
+        print(date)
+        await call.message.delete()
         time_choosing_keyboard = TimeKeyboard()
-        if time_choosing_keyboard.create_time_list_for_keyboard(call.data):
-            await call.message.answer(f"{texts.get('time_select')}",
-                                      reply_markup=time_choosing_keyboard.create_time_select_keyboard("up"))
+        if time_choosing_keyboard.create_time_buttons(call.data):
+            await call.message.answer(text=f"{texts.get('time_select')}",
+                                      reply_markup=time_choosing_keyboard.start_keyboard())
         else:
-            await call.message.answer(f"{texts.get('closed')}",
-                                      reply_markup=time_choosing_keyboard.create_back_button())
-
+            await call.message.answer(text=f"{texts.get('closed')}",
+                                      reply_markup=time_choosing_keyboard.start_keyboard())
+        print(call.data)
         async with state.proxy() as data:
             data["request"].date = call.data
             data["keyboard"] = time_choosing_keyboard
 
         await state.set_state(StateGroup.in_choosing_time)
-
-    else:
-        await call.message.answer(text=texts.get("addresses"), reply_markup=create_choose_address_keyboard())
-        await state.set_state(StateGroup.in_choosing_address)
 
 
 @dp.callback_query_handler(state=StateGroup.in_choosing_time)
@@ -90,21 +85,19 @@ async def handle_time_callbacks(call: types.CallbackQuery, state: FSMContext):
         del data_base_manager
 
     elif call.data == ">>>":
-
         async with state.proxy() as data:
             time_choosing_keyboard = data['keyboard']
-            await call.message.edit_reply_markup(reply_markup=time_choosing_keyboard.go_page_upper())
+            await call.message.edit_reply_markup(reply_markup=time_choosing_keyboard.go_upper())
 
     elif call.data == "<<<":
-
         async with state.proxy() as data:
             time_choosing_keyboard = data['keyboard']
-            await call.message.edit_reply_markup(reply_markup=time_choosing_keyboard.go_page_down())
+            await call.message.edit_reply_markup(reply_markup=time_choosing_keyboard.go_down())
 
     elif call.data == "own_time":
         pass
 
-    else:
-        await call.message.delete()
-        await call.message.answer(text=texts.get("date"), reply_markup=create_temp_date_keyboard())
-        await state.set_state(StateGroup.in_choosing_date)
+    # else:
+    #     await call.message.delete()
+    #     await call.message.answer(text=texts.get("date"), reply_markup=create_temp_date_keyboard())
+    #     await state.set_state(StateGroup.in_choosing_date)
