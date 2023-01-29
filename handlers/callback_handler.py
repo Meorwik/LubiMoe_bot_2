@@ -45,9 +45,9 @@ async def handle_addresses_callbacks(call: types.CallbackQuery, state: FSMContex
 @dp.callback_query_handler(calendar_callback.filter(), state=StateGroup.in_choosing_date)
 async def handle_date_callbacks(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
     selected, date = await DateKeyboard().process_selection(call, callback_data)
-
     if selected:
         await call.message.delete()
+
         time_choosing_keyboard = TimeKeyboard()
         if time_choosing_keyboard.create_time_buttons(call.data):
             await call.message.answer(text=f"{texts.get('time_select')}",

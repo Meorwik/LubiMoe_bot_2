@@ -1,8 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
+from calendar import month_name, monthcalendar
 from datetime import datetime, timedelta
 from aiogram.types import CallbackQuery
-import calendar
+
 
 # setting callback_data prefix and parts
 calendar_callback = CallbackData('simple_calendar', 'act', 'year', 'month', 'day')
@@ -14,20 +15,20 @@ class DateKeyboard:
         self.inline_kb = InlineKeyboardMarkup(row_width=7)
         self.ignore_callback = None  # for buttons with no answer
 
+    # First row - Month and Year
     async def __add_month_heading(self, month):
-        # First row - Month and Year
         self.inline_kb.row()
         self.inline_kb.insert(InlineKeyboardButton(
-            text=f'{calendar.month_name[month]}',
+            text=f'{month_name[month]}',
             callback_data=self.ignore_callback))
 
+    # Second row - Week Days
     async def __add_week_days(self):
-        # Second row - Week Days
         self.inline_kb.row(*[InlineKeyboardButton(day, callback_data=self.ignore_callback) for day in week_days])
 
-    async def __add_days_of_month_and_bottom_buttons(self, year, month):
-        # Calendar rows - Days of month
-        month_calendar = calendar.monthcalendar(year, month)
+    # Calendar rows - Days of month
+    async def __add_days_of_month(self, year, month):
+        month_calendar = monthcalendar(year, month)
         for week in month_calendar:
             self.inline_kb.row()
             for day in week:
@@ -38,14 +39,16 @@ class DateKeyboard:
                     text=str(day),
                     callback_data=calendar_callback.new("DAY", year, month, day)))
 
-        # Last row - Buttons
+    # Last row - Buttons
+    async def __add_bottom_buttons(self, year, month):
+
         prev_month_button = InlineKeyboardButton(text="<<<",
-                                                 callback_data=calendar_callback.new("PREV-MONTH", year, month, day))
+                                                 callback_data=calendar_callback.new("PREV-MONTH", year, month, 0))
 
         back_button = InlineKeyboardButton("Назад", callback_data=calendar_callback.new("BACK", year, month, 0))
 
         next_month_button = InlineKeyboardButton(text=">>>",
-                                                 callback_data=calendar_callback.new("NEXT-MONTH", year, month, day))
+                                                 callback_data=calendar_callback.new("NEXT-MONTH", year, month, 0))
 
         self.inline_kb.row(prev_month_button, back_button, next_month_button)
 
@@ -74,6 +77,7 @@ class DateKeyboard:
         self.ignore_callback = calendar_callback.new("IGNORE", year, month, 0)
         await self.__add_month_heading(month)
         await self.__add_week_days()
-        await self.__add_days_of_month_and_bottom_buttons(year, month)
+        await self.__add_days_of_month(year, month)
+        await self.__add_bottom_buttons(year, month)
 
         return self.inline_kb
