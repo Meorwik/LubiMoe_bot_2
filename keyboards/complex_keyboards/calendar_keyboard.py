@@ -31,18 +31,18 @@ class DateKeyboard:
         for week in month_calendar:
             self.inline_kb.row()
             for day in week:
-                # TODO:DATE CHECKER ADD HERE
                 if day == 0:
                     self.inline_kb.insert(InlineKeyboardButton("-", callback_data=self.ignore_callback))
                     continue
                 self.inline_kb.insert(InlineKeyboardButton(
                     text=str(day),
                     callback_data=calendar_callback.new("DAY", year, month, day)))
+
         # Last row - Buttons
         prev_month_button = InlineKeyboardButton(text="<<<",
                                                  callback_data=calendar_callback.new("PREV-MONTH", year, month, day))
 
-        back_button = InlineKeyboardButton("Назад", callback_data="BACK")
+        back_button = InlineKeyboardButton("Назад", callback_data=calendar_callback.new("BACK", year, month, 0))
 
         next_month_button = InlineKeyboardButton(text=">>>",
                                                  callback_data=calendar_callback.new("NEXT-MONTH", year, month, day))

@@ -1,7 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from datetime import datetime
 from data.texts import texts
 from math import ceil
-import datetime
+
 
 list_with_time = texts.get("times")
 CALLBACK_GO_BACK = "BACK"
@@ -18,20 +19,19 @@ class TimeKeyboard:
 
     @staticmethod
     def __init_time_list(date):
-        if date == str(datetime.datetime.now().date()):
-            #TODO: FINISH DATE CHECK
-            print(date, str(datetime.datetime.now().date()))
+        if datetime.strptime(date[20:], '%Y:%m:%d').date() > datetime.now().date():
             return list_with_time
-        else:
-            print(date, str(datetime.datetime.now().date()))
-            current_time = datetime.datetime.now().strftime("%H")
+
+        elif datetime.strptime(date[20:], '%Y:%m:%d').date() == datetime.now().date():
+            current_time = str(datetime.now().strftime("%H"))
             current_time_str = f"С {current_time}:00"
-            print(current_time_str)
             if current_time_str in list_with_time:
                 times = [time for time in list_with_time[list_with_time.index(current_time_str)+1:]]
                 return times
-            elif 12 <= int(current_time) < 17:
+            elif 8 <= int(current_time) < 17:
                 return list_with_time
+        else:
+            return None
 
     def __create_bottom_buttons(self):
         if self.possible_pages > 1:

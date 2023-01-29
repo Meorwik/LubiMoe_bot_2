@@ -6,9 +6,10 @@ from utils.db_api.db_api import DataBaseManager
 from aiogram.dispatcher import FSMContext
 from utils.users_requests import Request
 from states.states import StateGroup
+from datetime import datetime
 from data.texts import texts
 from aiogram import types
-from loader import dp
+from loader import dp, bot
 
 
 @dp.callback_query_handler(state=StateGroup.in_main_menu)
@@ -23,7 +24,6 @@ async def handle_main_menu(call: types.CallbackQuery, state: FSMContext):
         user_request.last_name = call.from_user.last_name
 
         async with state.proxy() as data: data["request"] = user_request
-
         await call.message.answer(text=texts.get("addresses"), reply_markup=create_choose_address_keyboard())
         await StateGroup.in_choosing_address.set()
 
@@ -33,12 +33,9 @@ async def handle_addresses_callbacks(call: types.CallbackQuery, state: FSMContex
     await call.message.delete()
     if call.data in list_with_addresses:
 
-        async with state.proxy() as data:
-            data["request"].address = call.data
-
-        await call.answer(text=f"Вы выбрали: {call.data}")
-
+        async with state.proxy() as data: data["request"].address = call.data
         await call.message.answer(text=texts.get("date"), reply_markup=await DateKeyboard().start_calendar())
+        await call.answer(text=f"Вы выбрали: {call.data}")
         await state.set_state(StateGroup.in_choosing_date)
 
     elif call.data == "BACK":
@@ -50,7 +47,6 @@ async def handle_date_callbacks(call: types.CallbackQuery, state: FSMContext, ca
     selected, date = await DateKeyboard().process_selection(call, callback_data)
 
     if selected:
-        print(date)
         await call.message.delete()
         time_choosing_keyboard = TimeKeyboard()
         if time_choosing_keyboard.create_time_buttons(call.data):
@@ -59,12 +55,16 @@ async def handle_date_callbacks(call: types.CallbackQuery, state: FSMContext, ca
         else:
             await call.message.answer(text=f"{texts.get('closed')}",
                                       reply_markup=time_choosing_keyboard.start_keyboard())
-        print(call.data)
-        async with state.proxy() as data:
-            data["request"].date = call.data
-            data["keyboard"] = time_choosing_keyboard
 
+        async with state.proxy() as data:
+            data["request"].date = str(datetime.strptime(call.data[20:], '%Y:%m:%d').date())
+            data["keyboard"] = time_choosing_keyboard
         await state.set_state(StateGroup.in_choosing_time)
+
+    elif "BACK" in call.data:
+        await call.message.delete()
+        await call.message.answer(text=texts.get("addresses"), reply_markup=create_choose_address_keyboard())
+        await StateGroup.in_choosing_address.set()
 
 
 @dp.callback_query_handler(state=StateGroup.in_choosing_time)
@@ -97,7 +97,7 @@ async def handle_time_callbacks(call: types.CallbackQuery, state: FSMContext):
     elif call.data == "own_time":
         pass
 
-    # else:
-    #     await call.message.delete()
-    #     await call.message.answer(text=texts.get("date"), reply_markup=create_temp_date_keyboard())
-    #     await state.set_state(StateGroup.in_choosing_date)
+    else:
+        await call.message.delete()
+        await call.message.answer(text=texts.get("date"), reply_markup=await DateKeyboard().start_calendar())
+        await state.set_state(StateGroup.in_choosing_date)
