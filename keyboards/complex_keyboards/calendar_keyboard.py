@@ -52,7 +52,7 @@ class DateKeyboard:
 
         self.inline_kb.row(prev_month_button, back_button, next_month_button)
 
-    async def process_selection(self, query: CallbackQuery, data: CallbackData) -> tuple:
+    async def process_selection(self, query: CallbackQuery, data) -> tuple:
         return_data = (False, None)
         temp_date = datetime(int(data['year']), int(data['month']), 1)
         # processing empty buttons, answering with no action

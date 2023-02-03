@@ -12,8 +12,8 @@ class Request:
     date: str = None
     time: str = None
     persons_name: str = None
-    countOfGuests: int = None
-    phoneNumber: int = None
+    count_of_guests: int = None
+    phone_number: int = None
 
     def to_dict(self):
         return loads(dumps(self, default=lambda o: o.__dict__, indent=4, ensure_ascii=False))
